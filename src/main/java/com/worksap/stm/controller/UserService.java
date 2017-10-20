@@ -44,8 +44,8 @@ public class UserService {
 		}
 		
 		
-		String EMAIL_REGEX = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
-		Boolean b = user.getEmail().matches(EMAIL_REGEX);
+		String check = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
+		Boolean b = user.getEmail().matches(check);
 		if(b==false) {
 			finalresult.setStatus("FAILURE");
 			finalresult.setCause(ApiFailureCause.INVALID_EMAIL);

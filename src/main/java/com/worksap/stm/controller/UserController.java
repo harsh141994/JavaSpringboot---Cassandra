@@ -17,16 +17,17 @@ import com.worksap.stm.lib.response.ApiStatus;
 
 @RestController
 public class UserController {
-	//@Autowired UserService userService;
+	@Autowired 
+	UserService userService;
 	
 	@RequestMapping(path = "/user", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	public ApiResponseEntity<UserResponseEntity> createUser(@RequestBody UserCreateRequestEntity user) {
-		return null;
+		return userService.createUser(user);
 	}
 
 	@RequestMapping(path = "/user/{userId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	public ApiResponseEntity<UserResponseEntity> getUser(@PathVariable String userId) {
-		return null;
+		return userService.getUser(userId);
 	}
 
 	@RequestMapping(path = "/user", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -34,7 +35,7 @@ public class UserController {
 		ApiResponseEntity<List<UserResponseEntity>> response = new ApiResponseEntity<>();
 		try {
 			response.setStatus(ApiStatus.SUCCESS);
-			//response.setDetails(userService.getAll());
+			response.setDetails(userService.getAll());
 		} catch(Exception e) {
 			response.setStatus(ApiStatus.FAILURE);
 			response.setCause(e.getMessage());

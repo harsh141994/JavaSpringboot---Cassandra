@@ -271,6 +271,9 @@ public class SchedulerService {
 		     millis = d.getTime();
 		} catch (ParseException e) {
 		    e.printStackTrace();
+		    a.setStatus("FAILURE");
+			a.setCause(ApiFailureCause.SCHEDULE_NOT_FOUND);
+			return a;
 		}
 		
 		String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"+ userId + "', startTime > " +millis+ ", endTime < " + millis+86400000 +    " ;";
@@ -326,6 +329,9 @@ public class SchedulerService {
 		     millis = d.getTime();
 		} catch (ParseException e) {
 		    e.printStackTrace();
+		    a.setStatus("FAILURE");
+			a.setCause(ApiFailureCause.SCHEDULE_NOT_FOUND);
+			return a;
 		}
 		
 		String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"+ userId + "', startTime > " +millis+ ", endTime < " + millis+(7*86400000) +    " ;";
@@ -380,6 +386,9 @@ public class SchedulerService {
 		     millis = d.getTime();
 		} catch (ParseException e) {
 		    e.printStackTrace();
+		    a.setStatus("FAILURE");
+			a.setCause(ApiFailureCause.SCHEDULE_NOT_FOUND);
+			return a;
 		}
 		
 		String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"+ userId + "', startTime > " +millis+ ", endTime < " + millis+(7*86400000) +    " ;";

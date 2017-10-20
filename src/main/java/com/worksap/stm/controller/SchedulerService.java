@@ -3,6 +3,7 @@ package com.worksap.stm.controller;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -91,29 +92,27 @@ public class SchedulerService {
 		// SCHEDULE_CONFLICT
 		for (int i = 0; i < schedule.getUsers().size(); i++) {
 			System.out.println(schedule.getUsers());
-			String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"+ schedule.getUsers().get(i) + "';";
+			String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"
+					+ schedule.getUsers().get(i) + "';";
 			ResultSet resultSet = cqltemplate.query(query);
 			List<Row> ls = resultSet.all();
-			
-			for(int j=0; j<ls.size(); j++) {
+
+			for (int j = 0; j < ls.size(); j++) {
 				Row r = ls.get(j);
 				long st = r.getLong(2);
 				long en = r.getLong(3);
-				//new sch ka end< start
-				if(schedule.getEndTime()<st || schedule.getStartTime()>en) {
-					
-				}
-				else {
+				// new sch ka end< start
+				if (schedule.getEndTime() < st || schedule.getStartTime() > en) {
+
+				} else {
 					finalresult.setStatus("FAILURE");
 					finalresult.setCause(ApiFailureCause.SCHEDULE_CONFLICT);
 					return finalresult;
 				}
-				
+
 			}
 
-			
 		}
-		
 
 		// schedule is correct
 		String id = UUIDs.timeBased().toString();
@@ -131,19 +130,18 @@ public class SchedulerService {
 
 		finalresult.setStatus("SUCCESS");
 		finalresult.setDetails(s);
-		
-		
-		//adding into scheduleUsers
-		for(int i=0; i<schedule.getUsers().size(); i++) {
+
+		// adding into scheduleUsers
+		for (int i = 0; i < schedule.getUsers().size(); i++) {
 			String str_userId = schedule.getUsers().get(i);
 			PreparedStatement preparedStatement1 = cqltemplate.getSession().prepare(
 					"INSERT INTO stm_practice_awesome_name.scheduleUsers(userId,startTime,endtime, scheduleId, title, description) values(?,?,?,?,?,?);");
 
-			Statement insertstatement1 = preparedStatement1.bind(str_userId, s.getStartTime(), s.getEndTime(), s.getScheduleId(), 
-					s.getTitle(), s.getDescription());
+			Statement insertstatement1 = preparedStatement1.bind(str_userId, s.getStartTime(), s.getEndTime(),
+					s.getScheduleId(), s.getTitle(), s.getDescription());
 
 			cqltemplate.execute(insertstatement1);
-			
+
 		}
 
 		return finalresult;
@@ -153,7 +151,8 @@ public class SchedulerService {
 		ApiResponseEntity<ScheduleResponseEntity> finalresult = new ApiResponseEntity<>();
 
 		// user not present
-		String query = "SELECT scheduleid, starttime, endtime, title, users, description FROM stm_practice_awesome_name.schedule where scheduleId='"+ scheduleId + "';";
+		String query = "SELECT scheduleid, starttime, endtime, title, users, description FROM stm_practice_awesome_name.schedule where scheduleId='"
+				+ scheduleId + "';";
 		ResultSet resultSet = cqltemplate.query(query);
 		List<Row> ls = resultSet.all();
 		System.out.println(ls);
@@ -177,201 +176,196 @@ public class SchedulerService {
 	public ApiResponseEntity<List<ScheduleResponseEntity>> getAllSchedule() {
 		List<ScheduleResponseEntity> result = new ArrayList<>();
 		ApiResponseEntity<List<ScheduleResponseEntity>> a = new ApiResponseEntity<List<ScheduleResponseEntity>>();
-		
+
 		String query = "SELECT scheduleid, starttime, endtime, title, users, description FROM stm_practice_awesome_name.schedule;";
 		ResultSet resultSet = cqltemplate.query(query);
 		List<Row> ls = resultSet.all();
 		System.out.println(ls);
-		
-		if(ls.size()==0) {
+
+		if (ls.size() == 0) {
 			a.setStatus("FAILURE");
 			a.setCause(ApiFailureCause.SCHEDULE_NOT_FOUND);
 		}
 
 		for (int i = 0; i < ls.size(); i++) {
-			
+
 			ApiResponseEntity<ScheduleResponseEntity> cur = new ApiResponseEntity<>();
 			cur.setStatus("SUCCESS");
-			
+
 			Row r = ls.get(i);
 			System.out.println(r);
 			result.add(new ScheduleResponseEntity(r.getString(0), r.getLong(1), r.getLong(2), r.getString(3),
 					r.getList(4, String.class), r.getString(5)));
-			
+
 			cur.setDetails(new ScheduleResponseEntity(r.getString(0), r.getLong(1), r.getLong(2), r.getString(3),
 					r.getList(4, String.class), r.getString(5)));
-			
-			
+
 		}
-		
+
 		a.setStatus("SUCCESS");
 		a.setDetails(result);
-		
-		
 
 		return a;
 	}
 
-	//schedules for user
+	// schedules for user
 	public ApiResponseEntity<List<ScheduleResponseEntity>> getAllScheduleForUser(String userId) {
-		
+
 		List<ScheduleResponseEntity> result = new ArrayList<>();
 		ApiResponseEntity<List<ScheduleResponseEntity>> a = new ApiResponseEntity<List<ScheduleResponseEntity>>();
-		
-		String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"+ userId + "';";
+
+		String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"
+				+ userId + "';";
 		ResultSet resultSet = cqltemplate.query(query);
 		List<Row> ls = resultSet.all();
 		System.out.println(ls);
 		List<String> l = new ArrayList<String>();
 		l.add(userId);
-		
-		if(ls.size()==0) {
+
+		if (ls.size() == 0) {
 			a.setStatus("FAILURE");
 			a.setCause(ApiFailureCause.SCHEDULE_NOT_FOUND);
 		}
 
 		for (int i = 0; i < ls.size(); i++) {
-			
+
 			ApiResponseEntity<ScheduleResponseEntity> cur = new ApiResponseEntity<>();
 			cur.setStatus("SUCCESS");
-			
+
 			Row r = ls.get(i);
-			
+
 			System.out.println("printing row in schdule for users");
 			System.out.println(r);
-			
-			result.add(new ScheduleResponseEntity(r.getString(1), r.getLong(2), r.getLong(3), r.getString(4),
-					l, r.getString(5)));
-			
-			/*result.add(new ScheduleResponseEntity(r.getString(0), r.getLong(1), r.getLong(2), r.getString(3),
-					r.getList(4, String.class), r.getString(5)));
-			
-			cur.setDetails(new ScheduleResponseEntity(r.getString(0), r.getLong(1), r.getLong(2), r.getString(3),
-					r.getList(4, String.class), r.getString(5)));*/
-			
-			
+
+			result.add(new ScheduleResponseEntity(r.getString(1), r.getLong(2), r.getLong(3), r.getString(4), l,
+					r.getString(5)));
+
+			/*
+			 * result.add(new ScheduleResponseEntity(r.getString(0), r.getLong(1),
+			 * r.getLong(2), r.getString(3), r.getList(4, String.class), r.getString(5)));
+			 * 
+			 * cur.setDetails(new ScheduleResponseEntity(r.getString(0), r.getLong(1),
+			 * r.getLong(2), r.getString(3), r.getList(4, String.class), r.getString(5)));
+			 */
+
 		}
-		
+
 		a.setStatus("SUCCESS");
 		a.setDetails(result);
-		
-		
 
 		return a;
 	}
 
-	
 	public ApiResponseEntity<List<ScheduleResponseEntity>> getAllScheduleForUserInDay(String userId, String date) {
 		List<ScheduleResponseEntity> result = new ArrayList<>();
 		ApiResponseEntity<List<ScheduleResponseEntity>> a = new ApiResponseEntity<List<ScheduleResponseEntity>>();
 		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
 		long millis = 0;
 		try {
-		    Date d = f.parse(date);
-		     millis = d.getTime();
+			Date d = f.parse(date);
+			millis = d.getTime();
 		} catch (ParseException e) {
-		    e.printStackTrace();
-		    a.setStatus("FAILURE");
+			e.printStackTrace();
+			a.setStatus("FAILURE");
 			a.setCause(ApiFailureCause.SCHEDULE_NOT_FOUND);
 			return a;
 		}
-		
-		String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"+ userId + "', startTime > " +millis+ ", endTime < " + millis+86400000 +    " ;";
+
+		String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"
+				+ userId + "', startTime > " + millis + ", endTime < " + millis + 86400000 + " ;";
 		ResultSet resultSet = cqltemplate.query(query);
 		List<Row> ls = resultSet.all();
 		System.out.println(ls);
 		List<String> l = new ArrayList<String>();
 		l.add(userId);
-		
-		if(ls.size()==0) {
+
+		if (ls.size() == 0) {
 			a.setStatus("FAILURE");
 			a.setCause(ApiFailureCause.SCHEDULE_NOT_FOUND);
 		}
 
 		for (int i = 0; i < ls.size(); i++) {
-			
+
 			ApiResponseEntity<ScheduleResponseEntity> cur = new ApiResponseEntity<>();
 			cur.setStatus("SUCCESS");
-			
+
 			Row r = ls.get(i);
-			
+
 			System.out.println("printing row in schdule for users");
 			System.out.println(r);
-			
-			result.add(new ScheduleResponseEntity(r.getString(1), r.getLong(2), r.getLong(3), r.getString(4),
-					l, r.getString(5)));
-			
-			/*result.add(new ScheduleResponseEntity(r.getString(0), r.getLong(1), r.getLong(2), r.getString(3),
-					r.getList(4, String.class), r.getString(5)));
-			
-			cur.setDetails(new ScheduleResponseEntity(r.getString(0), r.getLong(1), r.getLong(2), r.getString(3),
-					r.getList(4, String.class), r.getString(5)));*/
-			
-			
+
+			result.add(new ScheduleResponseEntity(r.getString(1), r.getLong(2), r.getLong(3), r.getString(4), l,
+					r.getString(5)));
+
+			/*
+			 * result.add(new ScheduleResponseEntity(r.getString(0), r.getLong(1),
+			 * r.getLong(2), r.getString(3), r.getList(4, String.class), r.getString(5)));
+			 * 
+			 * cur.setDetails(new ScheduleResponseEntity(r.getString(0), r.getLong(1),
+			 * r.getLong(2), r.getString(3), r.getList(4, String.class), r.getString(5)));
+			 */
+
 		}
-		
+
 		a.setStatus("SUCCESS");
 		a.setDetails(result);
-		
-		
 
 		return a;
 	}
 
-	public ApiResponseEntity<List<ScheduleResponseEntity>> getAllScheduleForUserInWeek(String userId,
-			String date) {
+	public ApiResponseEntity<List<ScheduleResponseEntity>> getAllScheduleForUserInWeek(String userId, String date) {
 		List<ScheduleResponseEntity> result = new ArrayList<>();
 		ApiResponseEntity<List<ScheduleResponseEntity>> a = new ApiResponseEntity<List<ScheduleResponseEntity>>();
 		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
 		long millis = 0;
 		try {
-		    Date d = f.parse(date);
-		     millis = d.getTime();
+			Date d = f.parse(date);
+			millis = d.getTime();
 		} catch (ParseException e) {
-		    e.printStackTrace();
-		    a.setStatus("FAILURE");
+			e.printStackTrace();
+			a.setStatus("FAILURE");
 			a.setCause(ApiFailureCause.SCHEDULE_NOT_FOUND);
 			return a;
 		}
-		
-		String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"+ userId + "', startTime > " +millis+ ", endTime < " + millis+(7*86400000) +    " ;";
+
+		String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"
+				+ userId + "', startTime > " + millis + ", endTime < " + millis + (7 * 86400000) + " ;";
 		ResultSet resultSet = cqltemplate.query(query);
 		List<Row> ls = resultSet.all();
 		System.out.println(ls);
 		List<String> l = new ArrayList<String>();
 		l.add(userId);
-		
-		if(ls.size()==0) {
+
+		if (ls.size() == 0) {
 			a.setStatus("FAILURE");
 			a.setCause(ApiFailureCause.SCHEDULE_NOT_FOUND);
 		}
 
 		for (int i = 0; i < ls.size(); i++) {
-			
+
 			ApiResponseEntity<ScheduleResponseEntity> cur = new ApiResponseEntity<>();
 			cur.setStatus("SUCCESS");
-			
+
 			Row r = ls.get(i);
-			
+
 			System.out.println("printing row in schdule for users");
 			System.out.println(r);
-			
-			result.add(new ScheduleResponseEntity(r.getString(1), r.getLong(2), r.getLong(3), r.getString(4),
-					l, r.getString(5)));
-			
-			/*result.add(new ScheduleResponseEntity(r.getString(0), r.getLong(1), r.getLong(2), r.getString(3),
-					r.getList(4, String.class), r.getString(5)));
-			
-			cur.setDetails(new ScheduleResponseEntity(r.getString(0), r.getLong(1), r.getLong(2), r.getString(3),
-					r.getList(4, String.class), r.getString(5)));*/
-			
-			
+
+			result.add(new ScheduleResponseEntity(r.getString(1), r.getLong(2), r.getLong(3), r.getString(4), l,
+					r.getString(5)));
+
+			/*
+			 * result.add(new ScheduleResponseEntity(r.getString(0), r.getLong(1),
+			 * r.getLong(2), r.getString(3), r.getList(4, String.class), r.getString(5)));
+			 * 
+			 * cur.setDetails(new ScheduleResponseEntity(r.getString(0), r.getLong(1),
+			 * r.getLong(2), r.getString(3), r.getList(4, String.class), r.getString(5)));
+			 */
+
 		}
-		
+
 		a.setStatus("SUCCESS");
 		a.setDetails(result);
-		
-		
 
 		return a;
 	}
@@ -380,64 +374,70 @@ public class SchedulerService {
 		List<ScheduleResponseEntity> result = new ArrayList<>();
 		ApiResponseEntity<List<ScheduleResponseEntity>> a = new ApiResponseEntity<List<ScheduleResponseEntity>>();
 		SimpleDateFormat f = new SimpleDateFormat("yyyy-mm");
-		long millis = 0;
+		long millis1 = 0;
+		long millis2 =0;
 		try {
-		    Date d = f.parse(date);
-		     millis = d.getTime();
+			Date d = f.parse(date);
+			millis1 = d.getTime();
+			Calendar calendar = Calendar.getInstance();
+			calendar.clear();
+
+			calendar.set(Calendar.MONTH, Integer.parseInt(date.substring(5, 7)));
+			calendar.set(Calendar.YEAR, Integer.parseInt(date.substring(0, 4)));
+
+			calendar.add(Calendar.MONTH, 1);
+			Date da = calendar.getTime();
+			millis2 = da.getTime();
+			System.out.println();
 		} catch (ParseException e) {
-		    e.printStackTrace();
-		    a.setStatus("FAILURE");
+			e.printStackTrace();
+			a.setStatus("FAILURE");
 			a.setCause(ApiFailureCause.SCHEDULE_NOT_FOUND);
 			return a;
 		}
-		
-		String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"+ userId + "', startTime > " +millis+ ", endTime < " + millis+(7*86400000) +    " ;";
+
+		String query = "SELECT userId, scheduleid, starttime, endtime, title, description FROM stm_practice_awesome_name.scheduleUsers where userId = '"
+				+ userId + "', startTime > " + millis1 + ", endTime < " + millis2 + " ;";
 		ResultSet resultSet = cqltemplate.query(query);
 		List<Row> ls = resultSet.all();
 		System.out.println(ls);
 		List<String> l = new ArrayList<String>();
 		l.add(userId);
-		
-		if(ls.size()==0) {
+
+		if (ls.size() == 0) {
 			a.setStatus("FAILURE");
 			a.setCause(ApiFailureCause.SCHEDULE_NOT_FOUND);
 		}
 
 		for (int i = 0; i < ls.size(); i++) {
-			
+
 			ApiResponseEntity<ScheduleResponseEntity> cur = new ApiResponseEntity<>();
 			cur.setStatus("SUCCESS");
-			
+
 			Row r = ls.get(i);
-			
+
 			System.out.println("printing row in schdule for users");
 			System.out.println(r);
-			
-			result.add(new ScheduleResponseEntity(r.getString(1), r.getLong(2), r.getLong(3), r.getString(4),
-					l, r.getString(5)));
-			
-			/*result.add(new ScheduleResponseEntity(r.getString(0), r.getLong(1), r.getLong(2), r.getString(3),
-					r.getList(4, String.class), r.getString(5)));
-			
-			cur.setDetails(new ScheduleResponseEntity(r.getString(0), r.getLong(1), r.getLong(2), r.getString(3),
-					r.getList(4, String.class), r.getString(5)));*/
-			
-			
+
+			result.add(new ScheduleResponseEntity(r.getString(1), r.getLong(2), r.getLong(3), r.getString(4), l,
+					r.getString(5)));
+
+			/*
+			 * result.add(new ScheduleResponseEntity(r.getString(0), r.getLong(1),
+			 * r.getLong(2), r.getString(3), r.getList(4, String.class), r.getString(5)));
+			 * 
+			 * cur.setDetails(new ScheduleResponseEntity(r.getString(0), r.getLong(1),
+			 * r.getLong(2), r.getString(3), r.getList(4, String.class), r.getString(5)));
+			 */
+
 		}
-		
+
 		a.setStatus("SUCCESS");
 		a.setDetails(result);
-		
-		
 
 		return a;
 	}
-	
-	//long mills = date.getTime();
-	
-	
-	
-	
+
+	// long mills = date.getTime();
 
 }
-

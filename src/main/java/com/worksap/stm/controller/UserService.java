@@ -30,14 +30,14 @@ public class UserService {
 		ApiResponseEntity<UserResponseEntity> finalresult = new ApiResponseEntity<>();
 		
 		
-		if(user.getName()==null) {
+		if(user.getName()==null || user.getName().isEmpty()) {
 			finalresult.setStatus("FAILURE");
 			finalresult.setCause(ApiFailureCause.NAME_NOT_SPECIFIED);
 			return finalresult;
 		}
 		
 	
-		if(user.getEmail()==null) {
+		if(user.getEmail()==null || user.getEmail().isEmpty()) {
 			finalresult.setStatus("FAILURE");
 			finalresult.setCause(ApiFailureCause.EMAIL_NOT_SPECIFIED);
 			return finalresult;

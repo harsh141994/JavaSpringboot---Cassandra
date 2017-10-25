@@ -1,5 +1,6 @@
 package com.worksap.stm.controller;
 
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -33,29 +34,33 @@ public class SchedulerService {
 
 		ApiResponseEntity<ScheduleResponseEntity> finalresult = new ApiResponseEntity<>();
 
+		// title not specified
+		if (schedule.getTitle() == null || schedule.getTitle().isEmpty()) {
+			finalresult.setStatus("FAILURE");
+			finalresult.setCause(ApiFailureCause.TITLE_NOT_SPECIFIED);
+			return finalresult;
+		}
+		
+		//System.out.println(Long.valueOf(schedule.getStartTime()));
+		//System.out.println(schedule.getStartTime());
 		// start time not specified
-		if (Long.valueOf(schedule.getStartTime()) == null) {
+		if (Long.valueOf(schedule.getStartTime()) == null || Long.valueOf(schedule.getStartTime()) == 0) {
+			System.out.println("this is the start time");
+			System.out.println(Long.valueOf(schedule.getStartTime()));
 			finalresult.setStatus("FAILURE");
 			finalresult.setCause(ApiFailureCause.START_TIME_NOT_SPECIFIED);
 			return finalresult;
 		}
 
 		// end time not specified
-		if (Long.valueOf(schedule.getEndTime()) == null) {
+		if (Long.valueOf(schedule.getEndTime()) == null  || Long.valueOf(schedule.getEndTime()) == 0) {
 			finalresult.setStatus("FAILURE");
 			finalresult.setCause(ApiFailureCause.END_TIME_NOT_SPECIFIED);
 			return finalresult;
 		}
 
-		// title not specified
-		if (schedule.getTitle() == null) {
-			finalresult.setStatus("FAILURE");
-			finalresult.setCause(ApiFailureCause.TITLE_NOT_SPECIFIED);
-			return finalresult;
-		}
-
 		// users not specified
-		if (schedule.getUsers() == null) {
+		if (schedule.getUsers() == null || schedule.getUsers().isEmpty()) {
 			finalresult.setStatus("FAILURE");
 			finalresult.setCause(ApiFailureCause.USERS_NOT_SPECIFIED);
 			return finalresult;
@@ -77,13 +82,33 @@ public class SchedulerService {
 		}
 
 		// INVALID_START_TIME
-		if (schedule.getStartTime() < 0) {
+		Timestamp t = new Timestamp(schedule.getStartTime());
+		System.out.println("this is timestamp");
+		System.out.println(t);
+		
+		
+		java.util.Date date= new java.util.Date();
+        System.out.println(new Timestamp(date.getTime()));
+		Timestamp cur = new Timestamp(date.getTime());
+		
+		
+		if (schedule.getStartTime() < 0 || t.before(cur)) {
 			finalresult.setStatus("FAILURE");
 			finalresult.setCause(ApiFailureCause.INVALID_START_TIME);
 			return finalresult;
 		}
+		
+		
+		Timestamp t2 = new Timestamp(schedule.getEndTime());
+		//System.out.println("this is timestamp");
+		//System.out.println(t);
+		
+		
+		java.util.Date date2= new java.util.Date();
+     //   System.out.println(new Timestamp(date2.getTime()));
+		Timestamp cur2 = new Timestamp(date2.getTime());
 		// INVALID_END_TIME
-		if (schedule.getEndTime() < 0 || schedule.getEndTime() < schedule.getStartTime()) {
+		if (schedule.getEndTime() < 0 || schedule.getEndTime() <= schedule.getStartTime() || t2.before(cur2)) {
 			finalresult.setStatus("FAILURE");
 			finalresult.setCause(ApiFailureCause.INVALID_END_TIME);
 			return finalresult;
@@ -375,7 +400,7 @@ public class SchedulerService {
 		ApiResponseEntity<List<ScheduleResponseEntity>> a = new ApiResponseEntity<List<ScheduleResponseEntity>>();
 		SimpleDateFormat f = new SimpleDateFormat("yyyy-mm");
 		long millis1 = 0;
-		long millis2 =0;
+		long millis2 = 0;
 		try {
 			Date d = f.parse(date);
 			millis1 = d.getTime();

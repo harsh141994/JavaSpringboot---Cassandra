@@ -128,11 +128,11 @@ public class SchedulerService {
 				long en = r.getLong(3);
 				// new sch ka end< start
 				if ((st<=schedule.getStartTime() && en >= schedule.getStartTime()) ||  (st>=schedule.getStartTime() && st<=schedule.getEndTime() && en<=schedule.getEndTime()) || (st<=schedule.getStartTime()&& en<=schedule.getEndTime()) || (st>=schedule.getStartTime() && st<=schedule.getEndTime() && en>=schedule.getEndTime())) {
-
-				} else {
 					finalresult.setStatus("FAILURE");
 					finalresult.setCause(ApiFailureCause.SCHEDULE_CONFLICT);
 					return finalresult;
+				} else {
+					
 				}
 
 			}

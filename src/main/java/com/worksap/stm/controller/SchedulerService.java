@@ -127,7 +127,7 @@ public class SchedulerService {
 				long st = r.getLong(2);
 				long en = r.getLong(3);
 				// new sch ka end< start
-				if (schedule.getEndTime() < st || schedule.getStartTime() > en) {
+				if ((st<=schedule.getStartTime() && en >= schedule.getStartTime()) ||  (st>=schedule.getStartTime() && st<=schedule.getEndTime() && en<=schedule.getEndTime()) || (st<=schedule.getStartTime()&& en<=schedule.getEndTime()) || (st>=schedule.getStartTime() && st<=schedule.getEndTime() && en>=schedule.getEndTime())) {
 
 				} else {
 					finalresult.setStatus("FAILURE");

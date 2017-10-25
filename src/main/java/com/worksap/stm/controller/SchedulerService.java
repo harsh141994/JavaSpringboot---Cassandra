@@ -286,9 +286,12 @@ public class SchedulerService {
 		ApiResponseEntity<List<ScheduleResponseEntity>> a = new ApiResponseEntity<List<ScheduleResponseEntity>>();
 		SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
 		long millis = 0;
+		
 		try {
 			Date d = f.parse(date);
 			millis = d.getTime();
+			Timestamp t = new Timestamp(d.getTime());
+			millis = t.getTime();
 		} catch (ParseException e) {
 			e.printStackTrace();
 			a.setStatus("FAILURE");
@@ -346,6 +349,8 @@ public class SchedulerService {
 		try {
 			Date d = f.parse(date);
 			millis = d.getTime();
+			Timestamp t = new Timestamp(d.getTime());
+			millis = t.getTime();
 		} catch (ParseException e) {
 			e.printStackTrace();
 			a.setStatus("FAILURE");
